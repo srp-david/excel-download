@@ -37,7 +37,7 @@ public class ExcelRenderResourceFactoryTest {
         assertThat(cellStyle.getBorderLeft()).isEqualTo(BorderStyle.THIN);
         assertThat(cellStyle.getBorderBottom()).isEqualTo(BorderStyle.THIN);
         XSSFColor nameHeaderCellColor = (XSSFColor) cellStyle.getFillForegroundColorColor();
-        assertThat(nameHeaderCellColor.getRGB()).isEqualTo(new Byte[]{red, green, blue});
+        assertThat(nameHeaderCellColor.getRGB()).isEqualTo(new byte[]{red, green, blue});
     }
 
 }

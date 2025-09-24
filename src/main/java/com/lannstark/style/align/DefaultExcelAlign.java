@@ -1,13 +1,11 @@
 package com.lannstark.style.align;
 
-import jdk.nashorn.internal.objects.annotations.Getter;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 
 /**
  * DefaultExcelAlign
- *
  * Can be used with {@link com.lannstark.style.CustomExcelCellStyle}
  * see {@link org.apache.poi.ss.usermodel.VerticalAlignment} and
  * {@link org.apache.poi.ss.usermodel.HorizontalAlignment} for detail explanation

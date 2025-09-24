@@ -10,7 +10,7 @@ public class BlackHeaderStyle extends CustomExcelCellStyle {
     @Override
     public void configure(ExcelCellStyleConfigurer configurer) {
         configurer.foregroundColor(0, 0, 0)
-                .excelBorders(DefaultExcelBorders.newInstance(ExcelBorderStyle.THIN))
+                .excelBorders(DefaultExcelBorders.allBorders(ExcelBorderStyle.THIN))
                 .excelAlign(DefaultExcelAlign.CENTER_CENTER);
     }
 

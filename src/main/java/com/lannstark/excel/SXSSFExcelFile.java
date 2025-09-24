@@ -58,7 +58,7 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 		renderExcel(data);
 	}
 
-	protected void validateData(List<T> data) { }
+	protected void validateData(List<T> data) {}
 
 	protected abstract void renderExcel(List<T> data);
 
@@ -101,7 +101,6 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 	public void write(OutputStream stream) throws IOException {
 		wb.write(stream);
 		wb.close();
-		wb.dispose();
 		stream.close();
 	}
 

@@ -14,7 +14,7 @@ public final class DefaultExcelBorders implements ExcelBorders {
 		this.borders = borders;
 	}
 
-	public static DefaultExcelBorders newInstance(ExcelBorderStyle style) {
+	public static DefaultExcelBorders allBorders(ExcelBorderStyle style) {
 		List<DefaultExcelBorder> excelBorders = new ArrayList<>();
 		for (int i = 0; i < 4; i++) {
 			excelBorders.add(new DefaultExcelBorder(style));
