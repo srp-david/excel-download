@@ -11,21 +11,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * PreCalculatedCellStyleMap
- *
- * Determines cell's style
- * In currently, PreCalculatedCellStyleMap determines {org.apache.poi.ss.usermodel.DataFormat}
- *
+ * 일급 컬렉션 활용
+ * PreCalculatedCellStyleMap 클래스는 Excel의 셀 스타일을 사전에 계산하고 저장하는 역할을 합니다.
+ * 주어진 필드 타입과 키 값을 기반으로 CellStyle 객체를 생성하여 맵에 저장하고,
+ * 이후 동일한 키를 사용하여 저장된 CellStyle을 빠르게 조회할 수 있습니다.
  */
 public class PreCalculatedCellStyleMap {
 
 	private final DataFormatDecider dataFormatDecider;
 
+    private final Map<ExcelCellKey, CellStyle> cellStyleMap = new HashMap<>();
+
 	public PreCalculatedCellStyleMap(DataFormatDecider dataFormatDecider) {
 		this.dataFormatDecider = dataFormatDecider;
 	}
-
-	private final Map<ExcelCellKey, CellStyle> cellStyleMap = new HashMap<>();
 
 	public void put(Class<?> fieldType, ExcelCellKey excelCellKey, ExcelCellStyle excelCellStyle, Workbook wb) {
 		CellStyle cellStyle = wb.createCellStyle();

@@ -9,7 +9,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +22,7 @@ public class ExcelRenderResourceFactoryTest {
                 = ExcelRenderResourceFactory.prepareRenderResource(ExcelDto.class, new SXSSFWorkbook(), new DefaultDataFormatDecider());
 
         // then
-        assertThat(resource.getDataFieldNames()).isEqualTo(Arrays.asList("name", "age"));
+        assertThat(resource.getFieldPaths()).isEqualTo(List.of("name","age"));
 
         assertCenterThinCellStyle(resource.getCellStyle("name", ExcelRenderLocation.HEADER), (byte) 223, (byte) 235, (byte) 246);
         assertCenterThinCellStyle(resource.getCellStyle("age", ExcelRenderLocation.HEADER), (byte) 0, (byte) 0, (byte) 0);

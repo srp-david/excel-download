@@ -1,6 +1,6 @@
-package com.lannstark.excel.onesheet;
+package com.lannstark.excel.sxssf.onesheet;
 
-import com.lannstark.excel.SXSSFExcelFile;
+import com.lannstark.excel.sxssf.SXSSFExcelFile;
 import com.lannstark.resource.DataFormatDecider;
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,19 +21,16 @@ public final class OneSheetExcelFile<T> extends SXSSFExcelFile<T> {
 
     private String sheetName = "Sheet1";
 
-	public OneSheetExcelFile(Class<T> type, String sheetName) {
+	public OneSheetExcelFile(Class<T> type) {
         super(type);
-        setSheetName(sheetName);
 	}
 
-	public OneSheetExcelFile(List<T> data, Class<T> type, String sheetName) {
+	public OneSheetExcelFile(List<T> data, Class<T> type) {
 		super(data, type);
-        setSheetName(sheetName);
 	}
 
-	public OneSheetExcelFile(List<T> data, Class<T> type, String sheetName, DataFormatDecider dataFormatDecider) {
+	public OneSheetExcelFile(List<T> data, Class<T> type, DataFormatDecider dataFormatDecider) {
 		super(data, type, dataFormatDecider);
-        setSheetName(sheetName);
 	}
 
     /**
@@ -93,7 +90,7 @@ public final class OneSheetExcelFile<T> extends SXSSFExcelFile<T> {
      *
      * @param sheetName 설정할 시트 이름. null이거나 빈 문자열이 아닌 경우 시트 이름으로 설정됩니다.
      */
-    private void setSheetName(String sheetName) {
+    public void setSheetName(String sheetName) {
         if(StringUtils.isNotEmpty(sheetName)){
             this.sheetName = sheetName;
         }

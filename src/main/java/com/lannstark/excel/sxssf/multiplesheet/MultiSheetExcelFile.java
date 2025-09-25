@@ -1,6 +1,6 @@
-package com.lannstark.excel.multiplesheet;
+package com.lannstark.excel.sxssf.multiplesheet;
 
-import com.lannstark.excel.SXSSFExcelFile;
+import com.lannstark.excel.sxssf.SXSSFExcelFile;
 import com.lannstark.resource.DataFormatDecider;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.lang3.StringUtils;
@@ -24,9 +24,8 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
     private String baseSheetName = "Sheet";
     private int sheetIndex = 1;
 
-	public MultiSheetExcelFile(Class<T> type, String baseSheetName) {
+	public MultiSheetExcelFile(Class<T> type) {
 		super(type);
-        setBaseSheetName(baseSheetName);
 		wb.setZip64Mode(Zip64Mode.Always);
 	}
 
@@ -34,29 +33,15 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
 	 * If you use SXSSF with hug data, you need to set zip mode
 	 * see http://apache-poi.1045710.n5.nabble.com/Bug-62872-New-Writing-large-files-with-800k-rows-gives-java-io-IOException-This-archive-contains-unc-td5732006.html
 	 */
-	public MultiSheetExcelFile(List<T> data, Class<T> type, String baseSheetName) {
+	public MultiSheetExcelFile(List<T> data, Class<T> type) {
 		super(data, type);
-        setBaseSheetName(baseSheetName);
 		wb.setZip64Mode(Zip64Mode.Always);
 	}
 
-	public MultiSheetExcelFile(List<T> data, Class<T> type, String baseSheetName, DataFormatDecider dataFormatDecider) {
+	public MultiSheetExcelFile(List<T> data, Class<T> type, DataFormatDecider dataFormatDecider) {
 		super(data, type, dataFormatDecider);
-        setBaseSheetName(baseSheetName);
 		wb.setZip64Mode(Zip64Mode.Always);
 	}
-
-    /**
-     * 기본 시트 이름을 설정합니다.
-     * 전달된 값이 비어있지 않은 경우에만 기본 시트 이름을 업데이트합니다.
-     *
-     * @param baseSheetName 기본 시트 이름으로 설정할 문자열
-     */
-    private void setBaseSheetName(String baseSheetName) {
-        if(StringUtils.isNotEmpty(baseSheetName)){
-            this.baseSheetName = baseSheetName;
-        }
-    }
 
     /**
      * 데이터를 기반으로 Excel 파일에 내용을 렌더링합니다.
@@ -111,4 +96,15 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
 		currentRowIndex++;
 	}
 
+    /**
+     * 기본 시트 이름을 설정합니다.
+     * 전달된 값이 비어있지 않은 경우에만 기본 시트 이름을 업데이트합니다.
+     *
+     * @param baseSheetName 기본 시트 이름으로 설정할 문자열
+     */
+    public void setBaseSheetName(String baseSheetName) {
+        if(StringUtils.isNotEmpty(baseSheetName)){
+            this.baseSheetName = baseSheetName;
+        }
+    }
 }
