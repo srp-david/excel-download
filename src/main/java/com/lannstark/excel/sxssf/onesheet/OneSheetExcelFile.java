@@ -60,16 +60,21 @@ public final class OneSheetExcelFile<T> extends SXSSFExcelFile<T> {
 	public void renderExcel(List<T> data) {
         // 1. Create sheet and renderHeader
 		sheet = wb.createSheet(sheetName);
-		renderHeadersWithNewSheet(sheet, currentRowIndex++, COLUMN_START_INDEX);
 
-		if (data.isEmpty()) {
-			return;
-		}
+        renderHeadersWithNewSheet(sheet, currentRowIndex++, COLUMN_START_INDEX);
 
-		// 2. Render Body
-		for (Object renderedData : data) {
-			renderBody(renderedData, currentRowIndex++, COLUMN_START_INDEX);
-		}
+        if (data.isEmpty()) {
+            return;
+        }
+
+        // 2. Render Body
+        int bodyStartRowIndex = currentRowIndex + resource.getExcelHeader().getHeaderHeight() - 1;
+        for (Object renderedData : data) {
+            renderBody(renderedData, bodyStartRowIndex++, COLUMN_START_INDEX);
+        }
+
+        // 3. Auto size columns
+        autoSizeColumns();
 	}
 
     /**
@@ -82,6 +87,8 @@ public final class OneSheetExcelFile<T> extends SXSSFExcelFile<T> {
         for (Object renderedData : data) {
             renderBody(renderedData, currentRowIndex++, COLUMN_START_INDEX);
         }
+        // Auto size columns
+        autoSizeColumns();
     }
 
     /**

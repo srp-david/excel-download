@@ -73,11 +73,16 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
 	public void addRows(List<T> data) {
 		for (Object renderedData : data) {
 			renderBody(renderedData, currentRowIndex++, COLUMN_START_INDEX);
+
 			if (currentRowIndex == maxRowCanBeRendered) {
+				// 현재 시트가 가득 찼으므로 auto size column 적용
+				autoSizeColumns();
 				currentRowIndex = 1;
 				createNewSheetWithHeader();
 			}
 		}
+		// 마지막 시트에 대해서도 auto size column 적용
+		autoSizeColumns();
 	}
 
     /**
@@ -92,6 +97,7 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
      */
     private void createNewSheetWithHeader() {
 		sheet = wb.createSheet(baseSheetName + sheetIndex++);
+
 		renderHeadersWithNewSheet(sheet, ROW_START_INDEX, COLUMN_START_INDEX);
 		currentRowIndex++;
 	}

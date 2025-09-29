@@ -10,6 +10,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 import java.io.IOException;
@@ -77,6 +78,33 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 	protected abstract void renderExcel(List<T> data);
 
     /**
+     * 현재 시트의 모든 컬럼 너비를 자동으로 조정합니다.
+     * SXSSF에서 안전하게 auto sizing을 수행하며, null 체크와 범위 검증을 포함합니다.
+     * 데이터 렌더링이 완료된 후에 호출되어야 합니다.
+     */
+    protected void autoSizeColumns() {
+        if (!(sheet instanceof SXSSFSheet)) {
+            return;
+        }
+
+        // 첫 번째 행(헤더)이 존재하는지 확인
+        Row firstRow = sheet.getRow(0);
+        if (firstRow == null) {
+            return;
+        }
+
+        // 첫 번째 셀부터 마지막 셀까지 auto size 적용
+        short firstCellNum = firstRow.getFirstCellNum();
+        short lastCellNum = firstRow.getLastCellNum();
+
+        if (firstCellNum >= 0 && lastCellNum > firstCellNum) {
+            for (int colIdx = firstCellNum; colIdx < lastCellNum; colIdx++) {
+                sheet.autoSizeColumn(colIdx, true);
+            }
+        }
+    }
+
+    /**
      * 새 시트에 헤더를 생성하고 렌더링합니다.
      *
      * 주어진 시트 객체를 기반으로 헤더를 생성하며, 해당 헤더는 ExcelHeader와 매핑된 필드 경로를 사용하여 생성됩니다.
@@ -87,6 +115,8 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
      * @param columnStartIndex 시작 열 인덱스
      */
 	protected void renderHeadersWithNewSheet(Sheet sheet, int rowIndex, int columnStartIndex) {
+        ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
+
         ExcelHeader excelHeader = resource.getExcelHeader();
 
         // 헤더 전체 높이
@@ -158,7 +188,7 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 	}
 
 	public void write(OutputStream stream) throws IOException {
-		wb.write(stream);
+        wb.write(stream);
 		wb.close();
 		stream.close();
 	}
