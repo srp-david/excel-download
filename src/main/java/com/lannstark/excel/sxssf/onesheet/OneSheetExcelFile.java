@@ -19,18 +19,21 @@ public final class OneSheetExcelFile<T> extends SXSSFExcelFile<T> {
 	private static final int COLUMN_START_INDEX = 0;
 	private int currentRowIndex = ROW_START_INDEX;
 
-    private String sheetName = "Sheet1";
+    private String sheetName;
 
 	public OneSheetExcelFile(Class<T> type) {
         super(type);
+        this.sheetName = "Sheet1";
 	}
 
 	public OneSheetExcelFile(List<T> data, Class<T> type) {
 		super(data, type);
+        this.sheetName = "Sheet1";
 	}
 
 	public OneSheetExcelFile(List<T> data, Class<T> type, DataFormatDecider dataFormatDecider) {
 		super(data, type, dataFormatDecider);
+        this.sheetName = "Sheet1";
 	}
 
     /**
@@ -58,7 +61,7 @@ public final class OneSheetExcelFile<T> extends SXSSFExcelFile<T> {
      */
 	@Override
 	public void renderExcel(List<T> data) {
-        // 1. Create sheet and renderHeader
+        // 1. Create Sheet and renderHeader
 		sheet = wb.createSheet(sheetName);
 
         renderHeadersWithNewSheet(sheet, currentRowIndex++, COLUMN_START_INDEX);
@@ -74,7 +77,7 @@ public final class OneSheetExcelFile<T> extends SXSSFExcelFile<T> {
         }
 
         // 3. Auto size columns
-        autoSizeColumns();
+        autoSizeCurrentSheet();
 	}
 
     /**
@@ -87,8 +90,6 @@ public final class OneSheetExcelFile<T> extends SXSSFExcelFile<T> {
         for (Object renderedData : data) {
             renderBody(renderedData, currentRowIndex++, COLUMN_START_INDEX);
         }
-        // Auto size columns
-        autoSizeColumns();
     }
 
     /**

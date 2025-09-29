@@ -28,6 +28,7 @@ import static com.lannstark.utils.SuperClassReflectionUtils.getField;
 public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 
 	protected static final SpreadsheetVersion supplyExcelVersion = SpreadsheetVersion.EXCEL2007;
+	private static final int COLUMN_WIDTH_PADDING = 2500;
 
 	protected SXSSFWorkbook wb;
 	protected Sheet sheet;
@@ -78,28 +79,23 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 	protected abstract void renderExcel(List<T> data);
 
     /**
-     * 현재 시트의 모든 컬럼 너비를 자동으로 조정합니다.
-     * SXSSF에서 안전하게 auto sizing을 수행하며, null 체크와 범위 검증을 포함합니다.
-     * 데이터 렌더링이 완료된 후에 호출되어야 합니다.
+     * 현재 시트의 열 너비를 자동으로 조정합니다.
+     *
+     * 현재 시트에서 첫 번째 행의 셀을 기준으로 열 너비를 자동 조정합니다.
+     * 자동 조정 후 추가 여유 공간(COLUMN_WIDTH_PADDING)을 더하여 설정합니다.
      */
-    protected void autoSizeColumns() {
-        if (!(sheet instanceof SXSSFSheet)) {
-            return;
-        }
-
-        // 첫 번째 행(헤더)이 존재하는지 확인
-        Row firstRow = sheet.getRow(0);
-        if (firstRow == null) {
-            return;
-        }
-
-        // 첫 번째 셀부터 마지막 셀까지 auto size 적용
-        short firstCellNum = firstRow.getFirstCellNum();
-        short lastCellNum = firstRow.getLastCellNum();
-
-        if (firstCellNum >= 0 && lastCellNum > firstCellNum) {
-            for (int colIdx = firstCellNum; colIdx < lastCellNum; colIdx++) {
-                sheet.autoSizeColumn(colIdx, true);
+    protected void autoSizeCurrentSheet() {
+        if (sheet != null && sheet.getPhysicalNumberOfRows() > 0) {
+            Row row = sheet.getRow(sheet.getFirstRowNum());
+            if (row != null) {
+                Iterator<Cell> cellIterator = row.cellIterator();
+                while (cellIterator.hasNext()) {
+                    Cell cell = cellIterator.next();
+                    int columnIndex = cell.getColumnIndex();
+                    sheet.autoSizeColumn(columnIndex, true);
+                    int currentColumnWidth = sheet.getColumnWidth(columnIndex);
+                    sheet.setColumnWidth(columnIndex, (currentColumnWidth + COLUMN_WIDTH_PADDING));
+                }
             }
         }
     }

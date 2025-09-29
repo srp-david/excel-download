@@ -21,12 +21,13 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
 	private static final int COLUMN_START_INDEX = 0;
 	private int currentRowIndex = ROW_START_INDEX;
 
-    private String baseSheetName = "Sheet";
-    private int sheetIndex = 1;
+    private String baseSheetName;
+    private int sheetIndex;
 
 	public MultiSheetExcelFile(Class<T> type) {
 		super(type);
 		wb.setZip64Mode(Zip64Mode.Always);
+		initializeFields();
 	}
 
 	/*
@@ -36,12 +37,22 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
 	public MultiSheetExcelFile(List<T> data, Class<T> type) {
 		super(data, type);
 		wb.setZip64Mode(Zip64Mode.Always);
+		initializeFields();
 	}
 
 	public MultiSheetExcelFile(List<T> data, Class<T> type, DataFormatDecider dataFormatDecider) {
 		super(data, type, dataFormatDecider);
 		wb.setZip64Mode(Zip64Mode.Always);
+		initializeFields();
 	}
+
+    /**
+     * 필드를 초기화합니다.
+     */
+    private void initializeFields() {
+        this.baseSheetName = "Sheet";
+        this.sheetIndex = 1;
+    }
 
     /**
      * 데이터를 기반으로 Excel 파일에 내용을 렌더링합니다.
@@ -54,6 +65,7 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
 		// 1. Create header and return if data is empty
 		if (data.isEmpty()) {
 			createNewSheetWithHeader();
+			autoSizeCurrentSheet();
 			return ;
 		}
 
@@ -75,14 +87,14 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
 			renderBody(renderedData, currentRowIndex++, COLUMN_START_INDEX);
 
 			if (currentRowIndex == maxRowCanBeRendered) {
-				// 현재 시트가 가득 찼으므로 auto size column 적용
-				autoSizeColumns();
+				autoSizeCurrentSheet();
 				currentRowIndex = 1;
 				createNewSheetWithHeader();
 			}
 		}
-		// 마지막 시트에 대해서도 auto size column 적용
-		autoSizeColumns();
+
+		// 마지막 시트에 대한 auto sizing
+		autoSizeCurrentSheet();
 	}
 
     /**
