@@ -30,14 +30,8 @@ import static com.lannstark.utils.SuperClassReflectionUtils.getField;
 public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 
 	protected static final SpreadsheetVersion supplyExcelVersion = SpreadsheetVersion.EXCEL2007;
-	private static final int COLUMN_WIDTH_PADDING = 2500;
+	private static final int COLUMN_WIDTH_PADDING = 512;
 
-    /**
-     * -- GETTER --
-     *  현재 설정된 List 구분자를 반환합니다.
-     *
-     * @return 현재 구분자
-     */
     // List 구분자 설정
     // 기본값: 쉼표+공백
 	@Getter
@@ -100,28 +94,6 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 	protected abstract void renderExcel(List<T> data);
 
     /**
-     * 현재 시트의 열 너비를 자동으로 조정합니다.
-     * 현재 시트에서 첫 번째 행의 셀을 기준으로 열 너비를 자동 조정합니다.
-     * 자동 조정 후 추가 여유 공간(COLUMN_WIDTH_PADDING)을 더하여 설정합니다.
-     *   - autoSize만으로는 열 너비가 정확하게 조정되지 않아 추가 여유 공간 설정
-     */
-    protected void autoSizeCurrentSheet() {
-        if (sheet != null && sheet.getPhysicalNumberOfRows() > 0) {
-            Row row = sheet.getRow(sheet.getFirstRowNum());
-            if (row != null) {
-                Iterator<Cell> cellIterator = row.cellIterator();
-                while (cellIterator.hasNext()) {
-                    Cell cell = cellIterator.next();
-                    int columnIndex = cell.getColumnIndex();
-                    sheet.autoSizeColumn(columnIndex, true);
-                    int currentColumnWidth = sheet.getColumnWidth(columnIndex);
-                    sheet.setColumnWidth(columnIndex, (currentColumnWidth + COLUMN_WIDTH_PADDING));
-                }
-            }
-        }
-    }
-
-    /**
      * 새 시트에 헤더를 생성하고 렌더링합니다.
      * 주어진 시트 객체를 기반으로 헤더를 생성하며, 해당 헤더는 ExcelHeader와 매핑된 필드 경로를 사용하여 생성됩니다.
      * 헤더의 셀 병합 및 스타일 지정 작업도 이 메서드에서 수행됩니다.
@@ -133,6 +105,9 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 	protected void renderHeadersWithNewSheet(Sheet sheet, int rowIndex, int columnStartIndex) {
         // 시트 생성 후 행 추가 전에 auto size을 위한 tracking 설정
         ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
+
+        // Auto Size 설정해도 컬럼 너비가 정확하지 않은 경우가 있어 추가 너비 세팅
+        ((SXSSFSheet) sheet).setArbitraryExtraWidth(COLUMN_WIDTH_PADDING);
 
         ExcelHeader excelHeader = resource.getExcelHeader();
 
@@ -220,6 +195,18 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 	}
 
     /**
+     * 주어진 OutputStream에 엑셀 데이터를 쓰고, 관련 리소스를 정리합니다.
+     *
+     * @param stream 데이터를 작성할 OutputStream 객체
+     * @throws IOException 출력 과정에서 입출력 오류가 발생할 경우
+     */
+	public void write(OutputStream stream) throws IOException {
+        wb.write(stream);
+		wb.close();
+		stream.close();
+	}
+
+    /**
      * List 값을 설정된 구분자로 포맷팅합니다.
      * @param listValue 포맷팅할 List
      * @return 구분자로 연결된 문자열
@@ -235,17 +222,34 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
     }
 
     /**
-     * 주어진 OutputStream에 엑셀 데이터를 쓰고, 관련 리소스를 정리합니다.
-     *
-     * @param stream 데이터를 작성할 OutputStream 객체
-     * @throws IOException 출력 과정에서 입출력 오류가 발생할 경우
+     * 현재 시트의 열 너비를 자동으로 조정합니다.
+     * 현재 시트에서 첫 번째 행의 셀을 기준으로 열 너비를 자동 조정합니다.
+     * 자동 조정 후 추가 여유 공간(COLUMN_WIDTH_PADDING)을 더하여 설정합니다.
+     *   - autoSize만으로는 열 너비가 정확하게 조정되지 않아 추가 여유 공간 설정
      */
-	public void write(OutputStream stream) throws IOException {
-        wb.write(stream);
-		wb.close();
-		stream.close();
-	}
+    protected void autoSizeCurrentSheet() {
+        if (sheet != null && sheet.getPhysicalNumberOfRows() > 0) {
+            Row row = sheet.getRow(sheet.getFirstRowNum());
+            if (row != null) {
+                Iterator<Cell> cellIterator = row.cellIterator();
+                while (cellIterator.hasNext()) {
+                    Cell cell = cellIterator.next();
+                    int columnIndex = cell.getColumnIndex();
+                    sheet.autoSizeColumn(columnIndex, true);
+                }
+            }
+        }
+    }
 
+    /**
+     * 주어진 데이터 객체에서 필드 경로(fieldPath)를 따라 해당 필드의 값을 반환합니다.
+     * 필드 경로는 쉼표(",")로 구분되며, 각 경로는 데이터 객체의 필드 이름을 나타냅니다.
+     *
+     * @param fieldPath 쉼표(",")로 구분된 필드 경로 문자열
+     * @param data 값을 추출할 데이터 객체
+     * @return 필드 경로에 해당하는 값
+     * @throws Exception 필드 접근 중 발생할 수 있는 예외
+     */
     private Object getDataValueByFieldPath(String fieldPath, Object data) throws Exception{
         Queue<String> fieldNameQueue = new LinkedList<>(Arrays.asList(fieldPath.split(",")));
         Object result = data;
