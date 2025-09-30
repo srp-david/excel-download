@@ -8,11 +8,12 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 
 /**
- * MultiSheetExcelFile
- * - support Excel Version over 2007
- * - support multi-sheet rendering
- * - support Dffierent DataFormat by Class Type
- * - support Custom CellStyle according to (header or body) and data field
+ * 이 클래스는 Apache POI 라이브러리를 사용하여 Excel 파일을 생성하며,
+ * 다수의 시트(Sheet)를 지원하는 기능을 제공합니다.
+ * 제네릭(Generic) 타입을 사용하여 데이터 모델을 정의하고,
+ * 주어진 데이터를 Excel 파일에 렌더링합니다.
+ *
+ * @param <T> Excel에 렌더링할 데이터의 제네릭 타입
  */
 public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
 
@@ -62,7 +63,7 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
      */
 	@Override
 	protected void renderExcel(List<T> data) {
-		// 1. Create header and return if data is empty
+		// 1. Create Header and return if data is empty
 		if (data.isEmpty()) {
 			createNewSheetWithHeader();
 			autoSizeCurrentSheet();
@@ -120,7 +121,7 @@ public class MultiSheetExcelFile<T> extends SXSSFExcelFile<T> {
      *
      * @param baseSheetName 기본 시트 이름으로 설정할 문자열
      */
-    public void setBaseSheetName(String baseSheetName) {
+    public void setSheetName(String baseSheetName) {
         if(StringUtils.isNotEmpty(baseSheetName)){
             this.baseSheetName = baseSheetName;
         }

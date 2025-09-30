@@ -112,6 +112,7 @@ public final class ExcelRenderResourceFactory {
                         currCol,
                         currCol + colSpan - 1
                 );
+
                 excelHeader.put(currFieldPath, excelHeaderCell);
 
                 // 현재 Column 위치 변경

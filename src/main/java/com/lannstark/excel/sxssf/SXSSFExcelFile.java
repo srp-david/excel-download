@@ -3,6 +3,7 @@ package com.lannstark.excel.sxssf;
 import com.lannstark.excel.ExcelFile;
 import com.lannstark.exception.ExcelInternalException;
 import com.lannstark.resource.*;
+import lombok.Getter;
 import org.apache.poi.ss.SpreadsheetVersion;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.lannstark.utils.SuperClassReflectionUtils.getField;
 
@@ -29,6 +31,17 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 
 	protected static final SpreadsheetVersion supplyExcelVersion = SpreadsheetVersion.EXCEL2007;
 	private static final int COLUMN_WIDTH_PADDING = 2500;
+
+    /**
+     * -- GETTER --
+     *  현재 설정된 List 구분자를 반환합니다.
+     *
+     * @return 현재 구분자
+     */
+    // List 구분자 설정
+    // 기본값: 쉼표+공백
+	@Getter
+    private String listSeparator = ", ";
 
 	protected SXSSFWorkbook wb;
 	protected Sheet sheet;
@@ -44,7 +57,7 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 
 	/**
 	 * SXSSFExcelFile
-	 * @param data List Data to render an Excel file. data should have at least one @ExcelColumn on fields
+	 * @param data List Data to render an Excel file. Data should have at least one @ExcelColumn on fields
 	 * @param type Class type to be rendered
 	 */
 	public SXSSFExcelFile(List<T> data, Class<T> type) {
@@ -53,7 +66,7 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 
 	/**
 	 * SXSSFExcelFile
-	 * @param data List Data to render an Excel file. data should have at least one @ExcelColumn on fields
+	 * @param data List Data to render an Excel file. Data should have at least one @ExcelColumn on fields
 	 * @param type Class type to be rendered
 	 * @param dataFormatDecider Custom DataFormatDecider
 	 */
@@ -72,6 +85,14 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 	protected void validateData(List<T> data) {}
 
     /**
+     * List 값을 문자열로 변환할 때 사용할 구분자를 설정합니다.
+     * @param separator 구분자 (예: ", ", "; ", "\n" 등)
+     */
+    public void setListSeparator(String separator) {
+        this.listSeparator = separator != null ? separator : ", ";
+    }
+
+    /**
      * 제공된 데이터를 바탕으로 Excel 파일을 렌더링합니다.
      *
      * @param data Excel 파일에 렌더링할 데이터 리스트
@@ -80,9 +101,9 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 
     /**
      * 현재 시트의 열 너비를 자동으로 조정합니다.
-     *
      * 현재 시트에서 첫 번째 행의 셀을 기준으로 열 너비를 자동 조정합니다.
      * 자동 조정 후 추가 여유 공간(COLUMN_WIDTH_PADDING)을 더하여 설정합니다.
+     *   - autoSize만으로는 열 너비가 정확하게 조정되지 않아 추가 여유 공간 설정
      */
     protected void autoSizeCurrentSheet() {
         if (sheet != null && sheet.getPhysicalNumberOfRows() > 0) {
@@ -102,7 +123,6 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
 
     /**
      * 새 시트에 헤더를 생성하고 렌더링합니다.
-     *
      * 주어진 시트 객체를 기반으로 헤더를 생성하며, 해당 헤더는 ExcelHeader와 매핑된 필드 경로를 사용하여 생성됩니다.
      * 헤더의 셀 병합 및 스타일 지정 작업도 이 메서드에서 수행됩니다.
      *
@@ -111,6 +131,7 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
      * @param columnStartIndex 시작 열 인덱스
      */
 	protected void renderHeadersWithNewSheet(Sheet sheet, int rowIndex, int columnStartIndex) {
+        // 시트 생성 후 행 추가 전에 auto size을 위한 tracking 설정
         ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
 
         ExcelHeader excelHeader = resource.getExcelHeader();
@@ -174,15 +195,51 @@ public abstract class SXSSFExcelFile<T> implements ExcelFile<T> {
         }
 	}
 
+    /**
+     * 주어진 셀(Cell)에 값을 렌더링합니다. 값은 다양한 타입(Number, List, 기타 객체 등)에 따라
+     * 적절한 형태로 변환된 후 셀에 설정됩니다.
+     *
+     * @param cell 값을 설정할 대상 셀(Cell) 객체
+     * @param cellValue 셀에 설정할 값, Number, List 또는 기타 객체를 포함할 수 있음
+     */
 	private void renderCellValue(Cell cell, Object cellValue) {
-		if (cellValue instanceof Number) {
-			Number numberValue = (Number) cellValue;
-			cell.setCellValue(numberValue.doubleValue());
+		// Number 형식
+        if (cellValue instanceof Number numberValue) {
+            cell.setCellValue(numberValue.doubleValue());
 			return;
 		}
+
+        // List 형식 지정
+        if (cellValue instanceof List<?> listValue) {
+            String formattedList = formatListValue(listValue);
+            cell.setCellValue(formattedList);
+            return;
+        }
+
 		cell.setCellValue(cellValue == null ? "" : cellValue.toString());
 	}
 
+    /**
+     * List 값을 설정된 구분자로 포맷팅합니다.
+     * @param listValue 포맷팅할 List
+     * @return 구분자로 연결된 문자열
+     */
+    private String formatListValue(List<?> listValue) {
+        if (listValue == null || listValue.isEmpty()) {
+            return "";
+        }
+
+        return listValue.stream()
+                .map(item -> item == null ? "" : item.toString())
+                .collect(Collectors.joining(listSeparator));
+    }
+
+    /**
+     * 주어진 OutputStream에 엑셀 데이터를 쓰고, 관련 리소스를 정리합니다.
+     *
+     * @param stream 데이터를 작성할 OutputStream 객체
+     * @throws IOException 출력 과정에서 입출력 오류가 발생할 경우
+     */
 	public void write(OutputStream stream) throws IOException {
         wb.write(stream);
 		wb.close();

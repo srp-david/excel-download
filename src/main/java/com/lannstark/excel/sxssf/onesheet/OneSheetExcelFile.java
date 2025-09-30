@@ -23,18 +23,25 @@ public final class OneSheetExcelFile<T> extends SXSSFExcelFile<T> {
 
 	public OneSheetExcelFile(Class<T> type) {
         super(type);
-        this.sheetName = "Sheet1";
+        initializeFields();
 	}
 
 	public OneSheetExcelFile(List<T> data, Class<T> type) {
 		super(data, type);
-        this.sheetName = "Sheet1";
+        initializeFields();
 	}
 
 	public OneSheetExcelFile(List<T> data, Class<T> type, DataFormatDecider dataFormatDecider) {
 		super(data, type, dataFormatDecider);
-        this.sheetName = "Sheet1";
+        initializeFields();
 	}
+
+    /**
+     * 필드를 초기화합니다.
+     */
+    private void initializeFields() {
+        this.sheetName = "Sheet1";
+    }
 
     /**
      * 제공된 데이터가 Excel 파일 구성을 위한 유효한지 검증합니다.
